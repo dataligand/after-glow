@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bootstrap"
-version = "0.1.0b"
+version = "0.1.0-beta"
 description = ""
 authors = ["James <james@dataligand.com>"]
 readme = "README.md"
@@ -12,6 +12,9 @@ bcrypt = "^4.0.1"
 asyncssh = "^2.13.1"
 structlog = "^23.1.0"
 
+
+[tool.poetry.group.dev.dependencies]
+toml = "^0.10.2"
 
 [build-system]
 requires = ["poetry-core"]

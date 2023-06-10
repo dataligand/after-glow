@@ -2,6 +2,8 @@
 
 ### A configuration tool for ignition based systems.
 
+</br>
+
 ## The problem
 
 Ignition-based systems have a 'one-shot' system configuration, which needs to be generally available to all instances. This means that if you are deploying a service that requires configured secrets, you might be tempted to place them in the Ignition config. However, doing so would involve storing secrets in plain text (potentially uploading them to a hosting service). Not only is this insecure, but it also doesn't truly solve the problem since these secrets are likely to rotate, rendering any static values in the Ignition configuration invalid. This service is intended to allow secret provisioning after boot, similar to how you would provision other servers. This aligns with the general principles of other configuration tools such as Ansible and Puppet
@@ -22,7 +24,7 @@ In the case of copy failure the child process keeps running waiting up to `timeo
 
 ## Usage
 
-### Specify the mode either `parent ` or `child`
+### Specify the mode either `parent` or `child`
 
 ```bash
 usage: after_glow [-h] [parent | child] ...
@@ -37,7 +39,7 @@ positional arguments:
 
 ### Parent options
 
-```
+```bash
 usage: after_glow parent [-h] --private-key PRIVATE_KEY --child-key CHILD_KEY --ip IP --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
 
 options:
@@ -55,7 +57,7 @@ options:
 
 ### Child options
 
-```
+```bash
 usage: after_glow child [-h] --private-key PRIVATE_KEY --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
 
 options:
@@ -68,14 +70,45 @@ options:
   --timeout TIMEOUT     The time window for which files are expeted to be copied across
 ```
 
-## Developing
+</br>
+
+# Makefile
+
+Simplify docker packaging
+
+## Dependencies
+
+Docker or Podman (pass `USE_PODMAN=1` to use podman)
+
+The pyproject.toml file needs to have a version set correctly
+
+## Targets
+
+- `build`: Builds the Docker or Podman image using the specified Dockerfile and assigns appropriate tags based on the project's version defined in `pyproject.toml`.
+
+- `run`: Runs the Docker or Podman container with the specified runtime arguments (`RUN_ARGS`). It also allows additional runtime arguments to be passed (`DOCKER_ARGS`).
+
+- `clean`: Removes the Docker or Podman image and the running container associated with the project. It stops the running container, removes it, and deletes the image.
+
+- `rebuild`: `clean` `build`
+
+- `rerun`: `rebuild` `run`
+
+- `push`: This target pushes the Docker image to Docker Hub, including all the available tags.
+
+- `help`: This target displays the available targets and their descriptions.
+
+# Developing
+
+## Tech stack
 
 - [pyenv](https://github.com/pyenv/pyenv)
   - [python-build-dependencies](https://github.com/pyenv/pyenv/wiki#suggested-build-environment)
 - [poetry](https://python-poetry.org/)
-- python 3.11 `pyenv install 3.11`
+- python 3.11
+  - `pyenv install 3.11`
 
-## Run with docker
+## Example invocations
 
 ### Child
 
