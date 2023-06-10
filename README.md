@@ -20,6 +20,54 @@ This service uses `ssh` and `scp` to copy across configuration files and uses pa
 
 In the case of copy failure the child process keeps running waiting up to `timeout` for a new parent connection which succeeds.
 
+## Usage
+
+### Specify the mode either `parent ` or `child`
+
+```bash
+usage: after_glow [-h] [parent | child] ...
+
+Copy files from one machine to another
+
+positional arguments:
+  [parent | child]
+    child           copy files onto this machine
+    parent          copy files from this machine
+```
+
+### Parent options
+
+```
+usage: after_glow parent [-h] --private-key PRIVATE_KEY --child-key CHILD_KEY --ip IP --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
+
+options:
+  -h, --help            show this help message and exit
+  --private-key PRIVATE_KEY
+                        Path to private key file
+  --child-key CHILD_KEY
+                        Path to childs public key
+  --ip IP               The ip addres to connect to
+  --port PORT           The port to connect to
+  --files FILES [FILES ...]
+                        Colon seperated file:path mapping
+  --timeout TIMEOUT     The time window for which files are expeted to be copied across
+```
+
+### Child options
+
+```
+usage: after_glow child [-h] --private-key PRIVATE_KEY --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
+
+options:
+  -h, --help            show this help message and exit
+  --private-key PRIVATE_KEY
+                        Path to private key file
+  --port PORT           The port on which the server will listen
+  --files FILES [FILES ...]
+                        Colon seperated file:path mapping
+  --timeout TIMEOUT     The time window for which files are expeted to be copied across
+```
+
 ## Developing
 
 - [pyenv](https://github.com/pyenv/pyenv)
