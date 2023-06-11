@@ -18,6 +18,11 @@ This service uses `ssh` and `scp` to copy across configuration files and uses pa
 
 In the case of copy failure the child process keeps running waiting up to `timeout` for a new parent connection which succeeds.
 
+## Roadmap
+
+- Download to tempory location before moving to destination
+- Add CI integration tests
+
 ## Usage
 
 ### Specify the mode either `parent` or `child`
