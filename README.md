@@ -20,7 +20,6 @@ In the case of copy failure the child process keeps running waiting up to `timeo
 
 ## Roadmap
 
-- Download to tempory location before moving to destination
 - Add CI integration tests
 
 ## Usage
@@ -114,13 +113,14 @@ The pyproject.toml file needs to have a version set correctly
 ### Child
 
 ```bash
-docker run \
+ docker run \                                                                 
     -v ~/.ssh:/root/.ssh:ro \
+    -v `pwd`:/host \
     -p 127.0.0.1:8022:8022 \
     dataligand/after-glow:latest child \
-        --files test_file:/root/files/ \
-        --private-key /root/.ssh/id_ed25519 \
-        --port 8022
+        --files test_file:/host/child/files \
+        --private-key /root/.ssh/id_ed25519 \  
+        --port 8022  
 ```
 
 ### Parent

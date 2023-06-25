@@ -43,7 +43,7 @@ def timeout(duration):
 
 
 def files_already_exist(paths):
-    return {"paths_already_exist", paths}
+    return {"files_already_exist": paths}
 
 
 def write_event_log(log, event):

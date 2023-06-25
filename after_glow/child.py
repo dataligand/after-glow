@@ -5,8 +5,10 @@ import message
 import structlog
 from datetime import datetime, timedelta
 import traceback
-from pathlib import Path
 from files import parse_files, as_utf8, as_bytes
+from tempfile import mkstemp
+import os
+import shutil
 
 
 def arguments(parser: argparse.ArgumentParser):
@@ -30,6 +32,41 @@ def arguments(parser: argparse.ArgumentParser):
         default=300,
         help="The time window for which files are expeted to be copied across",
     )
+
+
+async def scp_copy(
+    conn,
+    file_tag: str,
+    dest: str,
+    progress_handler,
+    error_handler,
+    message_handler,
+    set_error,
+):
+    try:
+        (tempfd, temp_path) = mkstemp()
+        await asyncssh.scp(
+            (conn, file_tag),
+            temp_path,
+            progress_handler=progress_handler,
+            error_handler=error_handler,
+        )
+    except Exception as e:
+        os.close(tempfd)
+        set_error()
+        message.write_event(
+            message_handler, message.error(str(e), tb=traceback.format_exc())
+        )
+
+    else:
+        os.close(tempfd)
+        try:
+            shutil.move(temp_path, dest)
+        except Exception as e:
+            set_error()
+            message.write_event(
+                message_handler, message.error(str(e), tb=traceback.format_exc())
+            )
 
 
 async def copy_files(conn, tagged_files, message_handler, callback):
@@ -60,15 +97,22 @@ async def copy_files(conn, tagged_files, message_handler, callback):
         exit_code = 1
         message.write_event(message_handler, message.error(str(e)))
 
+    def set_error():
+        nonlocal exit_code
+        exit_code = 1
+
     try:
         jobs = [
             (
                 tag,
-                asyncssh.scp(
-                    (conn, tag),
-                    path,
+                scp_copy(
+                    conn=conn,
+                    file_tag=tag,
+                    dest=path,
                     progress_handler=progress_handler,
                     error_handler=error_handler,
+                    message_handler=message_handler,
+                    set_error=set_error,
                 ),
             )
             for (tag, path) in tagged_files.items()
@@ -187,12 +231,13 @@ async def main(args, loop):
         )
 
         paths = list(tagged_files.values())
+
         if validate_paths(paths):
             message.write_event_log(log, message.files_already_exist(paths))
             return 0
 
         for _tag, path in tagged_files.items():
-            Path(path).mkdir(parents=True, exist_ok=True)
+            Path(path).parent.mkdir(parents=True, exist_ok=True)
 
         exit_code = await listen(
             port=port,
@@ -204,5 +249,5 @@ async def main(args, loop):
 
     except Exception as e:
         message.write_event_log(log, message.error(str(e)), tb=traceback.format_exc())
-    finally:
+    else:
         return exit_code
