@@ -5,7 +5,7 @@ ifdef USE_PODMAN
 endif
 
 # Docker/Podman-related variables
-CONTAINER_NAME := after-glow
+CONTAINER_NAME := afterglow
 IMAGE_NAME := dataligand/$(CONTAINER_NAME)
 DOCKERFILE := Dockerfile
 

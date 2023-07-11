@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "bootstrap"
+name = "afterglow"
 version = "0.1.0-beta"
 description = ""
 authors = ["James <james@dataligand.com>"]
 readme = "README.md"
-packages = [{include = "bootstrap"}]
+packages = [{include = "afterglow"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"

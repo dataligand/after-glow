@@ -16,10 +16,10 @@ RUN apk add python3 openssh
 WORKDIR '/app'
 
 COPY --from=build /build/packages ./packages
-COPY after_glow after_glow/
+COPY afterglow afterglow/
 
 ENV PYTHONPATH=/app/packages
 
 EXPOSE 8022
 
-ENTRYPOINT ["python3", "after_glow"]
+ENTRYPOINT ["python3", "afterglow"]

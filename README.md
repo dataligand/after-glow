@@ -1,4 +1,4 @@
-# after-glow
+# afterglow
 
 ### A configuration tool for ignition based systems.
 
@@ -11,8 +11,8 @@ This service uses `ssh` and `scp` to copy across configuration files and uses pa
 - Parent (CI/Local/Instance) boots up a new vm on some host provider
   - Parent needs to know the childs public key
   - Requires the parent knows the IP address of the child node
-- Child boots and runs `after-glow child <...>` providing private key from config and listens for parent connection
-- Parent runs `after-glow parent <...>` including child public key connecting to child
+- Child boots and runs `afterglow child <...>` providing private key from config and listens for parent connection
+- Parent runs `afterglow parent <...>` including child public key connecting to child
 - Child initiates `scp` for each configured files.
 - Both parent and child process return exit code `0` on successful provisioning
 
@@ -27,7 +27,7 @@ In the case of copy failure the child process keeps running waiting up to `timeo
 ### Specify the mode either `parent` or `child`
 
 ```bash
-usage: after_glow [-h] [parent | child] ...
+usage: afterglow [-h] [parent | child] ...
 
 Copy files from one machine to another
 
@@ -40,7 +40,7 @@ positional arguments:
 ### Parent options
 
 ```bash
-usage: after_glow parent [-h] --private-key PRIVATE_KEY --child-key CHILD_KEY --ip IP --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
+usage: afterglow parent [-h] --private-key PRIVATE_KEY --child-key CHILD_KEY --ip IP --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
 
 options:
   -h, --help            show this help message and exit
@@ -58,7 +58,7 @@ options:
 ### Child options
 
 ```bash
-usage: after_glow child [-h] --private-key PRIVATE_KEY --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
+usage: afterglow child [-h] --private-key PRIVATE_KEY --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
 
 options:
   -h, --help            show this help message and exit
@@ -113,14 +113,14 @@ The pyproject.toml file needs to have a version set correctly
 ### Child
 
 ```bash
- docker run \                                                                 
+ docker run \
     -v ~/.ssh:/root/.ssh:ro \
     -v `pwd`:/host \
     -p 127.0.0.1:8022:8022 \
-    dataligand/after-glow:latest child \
+    dataligand/afterglow:latest child \
         --files test_file:/host/child/files \
-        --private-key /root/.ssh/id_ed25519 \  
-        --port 8022  
+        --private-key /root/.ssh/id_ed25519 \
+        --port 8022
 ```
 
 ### Parent
@@ -130,7 +130,7 @@ docker run \
   -v ~/.ssh:/root/.ssh:ro \
   -v `pwd`:/root/files:ro \
   --network host \
-  dataligand/after-glow:latest parent \
+  dataligand/afterglow:latest parent \
       --files test_file:/root/files/test_file \
       --private-key /root/.ssh/id_ed25519 \
       --child-key /root/.ssh/id_ed25519.pub \
