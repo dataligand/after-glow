@@ -42,8 +42,8 @@ def timeout(duration):
     return {"timeout": duration}
 
 
-def files_already_exist(paths):
-    return {"files_already_exist": paths}
+def files_already_exist(hashes):
+    return {"files_already_exist": hashes}
 
 
 def write_event_log(log, event):
@@ -74,8 +74,8 @@ def write_event_log(log, event):
             log.error("", error=error, **rest)
         case {"timeout": duration}:
             log.error("timeout", duration=duration)
-        case {"files_already_exist": paths}:
-            log.info("files_already_exist", paths=paths)
+        case {"files_already_exist": hashes}:
+            log.info("files_already_exist", hashes=hashes)
         case {"terminate": 1}:
             log.error("Failed to copy all files", exit_code=1)
         case {"terminate": 0}:

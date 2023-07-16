@@ -9,6 +9,7 @@ from files import parse_files, as_utf8, as_bytes
 from tempfile import mkstemp
 import os
 import shutil
+import hashlib
 
 
 def arguments(parser: argparse.ArgumentParser):
@@ -28,6 +29,13 @@ def arguments(parser: argparse.ArgumentParser):
     )
 
     parser.add_argument(
+        "--lock-path",
+        default="./afterglow.lock",
+        type=str,
+        help="Path to write the lockfile to",
+    )
+
+    parser.add_argument(
         "--timeout",
         default=300,
         help="The time window for which files are expeted to be copied across",
@@ -42,6 +50,7 @@ async def scp_copy(
     error_handler,
     message_handler,
     set_error,
+    file_hashes: dict,
 ):
     try:
         (tempfd, temp_path) = mkstemp()
@@ -60,6 +69,10 @@ async def scp_copy(
 
     else:
         os.close(tempfd)
+
+        with open(temp_path, "rb") as f:
+            digest = hashlib.file_digest(f, "sha256")
+
         try:
             shutil.move(temp_path, dest)
         except Exception as e:
@@ -67,11 +80,15 @@ async def scp_copy(
             message.write_event(
                 message_handler, message.error(str(e), tb=traceback.format_exc())
             )
+            os.remove(temp_path)
+        else:
+            file_hashes[file_tag] = digest.hexdigest()
 
 
 async def copy_files(conn, tagged_files, message_handler, callback):
     file_metadata = {}
     exit_code = 0
+    file_hashes = {}
 
     def progress_handler(tag, _dest, sent, total):
         nonlocal file_metadata
@@ -113,6 +130,7 @@ async def copy_files(conn, tagged_files, message_handler, callback):
                     error_handler=error_handler,
                     message_handler=message_handler,
                     set_error=set_error,
+                    file_hashes=file_hashes,
                 ),
             )
             for (tag, path) in tagged_files.items()
@@ -128,7 +146,7 @@ async def copy_files(conn, tagged_files, message_handler, callback):
             message_handler, message.error(str(e), tb=traceback.format_exc())
         )
     finally:
-        callback(exit_code)
+        callback((exit_code, file_hashes))
 
 
 def validate_paths(paths) -> int:
@@ -144,10 +162,11 @@ def command_handler(
             callback(exit_code)
 
 
-async def listen(*, port, private_key, tagged_files, log, loop) -> int:
+async def listen(*, port, private_key, tagged_files, lock_path, log, loop) -> int:
     timeout_duration = 300
     exit_code = 1
     ssh_acceptor = None
+    file_hashes = {}
     terminate_ack = loop.create_future()
     finished_scp = loop.create_future()
 
@@ -190,7 +209,7 @@ async def listen(*, port, private_key, tagged_files, log, loop) -> int:
             )
 
             while exit_code > 0:
-                exit_code = await finished_scp
+                exit_code, file_hashes = await finished_scp
 
                 exit_code = exit_code or int(not validate_paths(tagged_files.values()))
 
@@ -216,6 +235,20 @@ async def listen(*, port, private_key, tagged_files, log, loop) -> int:
     finally:
         if ssh_acceptor:
             ssh_acceptor.close()
+
+        if exit_code == 0:
+            path = Path(lock_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(lock_path, "w") as f:
+                f.write(
+                    "\n".join(
+                        [
+                            f"{file_tag} = {sha256}"
+                            for file_tag, sha256 in file_hashes.items()
+                        ]
+                    )
+                )
+
         return exit_code
 
 
@@ -224,17 +257,22 @@ async def main(args, loop):
     try:
         log = structlog.get_logger(__name__)
 
-        port, private_key, tagged_files = (
+        port, private_key, tagged_files, lock_path = (
             args.port,
             args.private_key,
             parse_files(args.files),
+            args.lock_path,
         )
 
-        paths = list(tagged_files.values())
-
-        if validate_paths(paths):
-            message.write_event_log(log, message.files_already_exist(paths))
+        try:
+            print(lock_path)
+            with open(lock_path, "r") as f:
+                message.write_event_log(
+                    log, message.files_already_exist(hashes=list(f.readlines()))
+                )
             return 0
+        except OSError:
+            pass
 
         for _tag, path in tagged_files.items():
             Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -243,11 +281,12 @@ async def main(args, loop):
             port=port,
             private_key=private_key,
             tagged_files=tagged_files,
+            lock_path=lock_path,
             log=log,
             loop=loop,
         )
 
     except Exception as e:
-        message.write_event_log(log, message.error(str(e)), tb=traceback.format_exc())
+        message.write_event_log(log, message.error(str(e), tb=traceback.format_exc()))
     else:
         return exit_code

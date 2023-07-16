@@ -11,10 +11,16 @@ This service uses `ssh` and `scp` to copy across configuration files and uses pa
 - Parent (CI/Local/Instance) boots up a new vm on some host provider
   - Parent needs to know the childs public key
   - Requires the parent knows the IP address of the child node
-- Child boots and runs `afterglow child <...>` providing private key from config and listens for parent connection
+- Child boots and runs `afterglow child <...>` providing private key
+  ###### Note: In someways this is just kicking the can down the road. We still need to get the secret key onto the child node. How exactly is up to you. Two solutions seems promising:
+  - Add a volume mount to the instance through the host provider
+  - Upload a custom FCOS|Flatcar|... image with a preshared key (symmetrical/asymetrical?) used to decrypt a private key in the ignition config
+  - Some other trust mechanism through the host provider (aws secrets manager) with IAM permissions provided to the instance
 - Parent runs `afterglow parent <...>` including child public key connecting to child
 - Child initiates `scp` for each configured files.
 - Both parent and child process return exit code `0` on successful provisioning
+- Child writes lock file to `--lock-path` containing `<file tag> = <sha256sum>` key value pairs
+  ###### Note: The intention of this is to allow use of this in a systemd unit configuration for oneshot behaviour
 
 In the case of copy failure the child process keeps running waiting up to `timeout` for a new parent connection which succeeds.
 
@@ -119,6 +125,7 @@ The pyproject.toml file needs to have a version set correctly
     -p 127.0.0.1:8022:8022 \
     dataligand/afterglow:latest child \
         --files test_file:/host/child/files \
+        --lock-path /host/afterglow.lock \
         --private-key /root/.ssh/id_ed25519 \
         --port 8022
 ```
