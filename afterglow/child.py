@@ -265,7 +265,6 @@ async def main(args, loop):
         )
 
         try:
-            print(lock_path)
             with open(lock_path, "r") as f:
                 message.write_event_log(
                     log, message.files_already_exist(hashes=list(f.readlines()))

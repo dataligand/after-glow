@@ -73,7 +73,9 @@ options:
   --port PORT           The port on which the server will listen
   --files FILES [FILES ...]
                         Colon seperated file:path mapping
+  --lock-path LOCK_PATH Path to write the lock file to upon successfull provisioning
   --timeout TIMEOUT     The time window for which files are expeted to be copied across
+
 ```
 
 </br>
