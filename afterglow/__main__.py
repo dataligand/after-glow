@@ -1,10 +1,11 @@
 import argparse
 import asyncio
 import structlog
-import parent
-import child
-import message
 import sys
+
+from . import child
+from . import message
+from . import parent
 
 parser = argparse.ArgumentParser(description="Copy files from one machine to another")
 

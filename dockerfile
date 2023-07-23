@@ -22,4 +22,4 @@ ENV PYTHONPATH=/app/packages
 
 EXPOSE 8022
 
-ENTRYPOINT ["python3", "afterglow"]
+ENTRYPOINT ["python3", "-m", "afterglow"]

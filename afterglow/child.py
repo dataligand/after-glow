@@ -1,15 +1,17 @@
-import asyncio, asyncssh, argparse
-from functools import partial
-from pathlib import Path
-import message
-import structlog
 from datetime import datetime, timedelta
-import traceback
-from files import parse_files, as_utf8, as_bytes
-from tempfile import mkstemp
-import os
-import shutil
+from functools import partial
 import hashlib
+import os
+from pathlib import Path
+import shutil
+import structlog
+from tempfile import mkstemp
+import traceback
+
+import asyncio, asyncssh, argparse
+
+from . import message
+from .files import parse_files, as_utf8, as_bytes
 
 
 def arguments(parser: argparse.ArgumentParser):

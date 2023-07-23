@@ -1,12 +1,13 @@
-import asyncssh, argparse
 from functools import partial
 import traceback
 
+import asyncssh, argparse
 from asyncssh.misc import MaybeAwait
 import structlog
-import message
 
-from files import parse_files, as_utf8, as_bytes
+
+from . import message
+from .files import parse_files, as_utf8, as_bytes
 
 
 def arguments(parser: argparse.ArgumentParser):
