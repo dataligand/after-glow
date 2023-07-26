@@ -1,24 +1,8 @@
-import argparse
 import asyncio
 import structlog
 import sys
 
-from . import child
-from . import message
-from . import parent
-
-parser = argparse.ArgumentParser(description="Copy files from one machine to another")
-
-sub_parsers = parser.add_subparsers(required=True, metavar="[parent | child]")
-
-child_parser = sub_parsers.add_parser("child", help="copy files onto this machine")
-child.arguments(child_parser)
-child_parser.set_defaults(module=child)
-
-
-parent_parser = sub_parsers.add_parser("parent", help="copy files from this machine")
-parent.arguments(parent_parser)
-parent_parser.set_defaults(module=parent)
+from . import argparser, message
 
 
 async def main(args, log):
@@ -36,4 +20,4 @@ loop = asyncio.get_event_loop()
 
 log = structlog.getLogger(__name__)
 
-loop.run_until_complete(main(parser.parse_args(), log))
+loop.run_until_complete(main(argparser.new().parse_args(), log))
