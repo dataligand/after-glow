@@ -26,6 +26,14 @@ def connecting():
     return {"connecting": True}
 
 
+def connection_failed(reason: str, sleep_interval: int):
+    return {
+        "connection_failed": True,
+        "reason": reason,
+        "sleep_interval": sleep_interval,
+    }
+
+
 def new_connection():
     return {"new_connection": True}
 
@@ -70,6 +78,12 @@ def write_event_log(log, event):
             log.info("listening", listening=True)
         case {"connecting": True}:
             log.info("connecting", connecting=True)
+        case {
+            "connection_failed": True,
+            "reason": reason,
+            "sleep_interval": sleep_interval,
+        }:
+            log.info("connection_failed", reason=reason, sleeping=sleep_interval)
         case {"error": error, **rest}:
             log.error("", error=error, **rest)
         case {"timeout": duration}:

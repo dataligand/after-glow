@@ -1,5 +1,8 @@
+import asyncio
+from datetime import datetime, timedelta
 from functools import partial
 import traceback
+
 
 import asyncssh, argparse
 from asyncssh.misc import MaybeAwait
@@ -7,7 +10,10 @@ import structlog
 
 
 from . import message
+from . import public_key
 from .files import parse_files, as_utf8, as_bytes
+
+SLEEP_INTERVAL = 20
 
 
 def arguments(parser: argparse.ArgumentParser):
@@ -38,6 +44,12 @@ def arguments(parser: argparse.ArgumentParser):
     )
 
     parser.add_argument(
+        "--poll-timeout",
+        default=900,
+        help="The time in seconds for which a connection to the child must be established",
+    )
+
+    parser.add_argument(
         "--timeout",
         default=300,
         help="The time window for which files are expeted to be copied across",
@@ -54,14 +66,21 @@ def command_handler(
 
 
 async def bootstrap_child(
-    *, ip, port, private_key, child_key, tagged_files, log, loop
+    *,
+    ip,
+    port,
+    private_key,
+    child_key,
+    tagged_files,
+    poll_timeout,
+    log,
+    loop,
 ) -> int:
     terminate = loop.create_future()
 
     message_handler = message.new_message_handler(
         log.bind(server=True, ip=ip, port=port)
     )
-    message.write_event(message_handler, message.connecting())
 
     async def process_factory(process: asyncssh.SSHServerProcess) -> None:
         try:
@@ -103,15 +122,34 @@ async def bootstrap_child(
                     message.error(str(e), tb=traceback.format_exc()),
                 )
 
-    conn = await asyncssh.connect_reverse(
-        ip,
-        port,
-        server_host_keys=private_key,
-        authorized_client_keys=child_key,
-        process_factory=process_factory,
-        sftp_factory=FileMap,
-        allow_scp=True,
-    )
+    poll_window = datetime.utcnow() + timedelta(seconds=poll_timeout)
+
+    while datetime.utcnow() < poll_window:
+        message.write_event(message_handler, message.connecting())
+        try:
+            conn = await asyncssh.connect_reverse(
+                ip,
+                port,
+                server_host_keys=private_key,
+                authorized_client_keys=child_key,
+                process_factory=process_factory,
+                sftp_factory=FileMap,
+                allow_scp=True,
+                connect_timeout="5s",
+            )
+        except (
+            ConnectionRefusedError,
+            TimeoutError,
+            ConnectionResetError,
+            asyncssh.misc.ConnectionLost,
+        ) as e:
+            message.write_event(
+                message_handler,
+                message.connection_failed(reason=e, sleep_interval=SLEEP_INTERVAL),
+            )
+            await asyncio.sleep(SLEEP_INTERVAL)
+        else:
+            break
 
     result = await terminate
 
@@ -126,19 +164,16 @@ async def main(args, loop):
     try:
         log = structlog.get_logger(__name__)
 
-        (
-            ip,
-            port,
-            private_key,
-            child_key,
-            tagged_files,
-        ) = (
+        (ip, port, private_key, child_key, tagged_files, poll_timeout) = (
             args.ip,
             args.port,
             args.private_key,
             args.child_key,
             parse_files(args.files),
+            args.poll_timeout,
         )
+
+        public_key.check_permission(private_key)
 
         exit_code = await bootstrap_child(
             ip=ip,
@@ -146,10 +181,11 @@ async def main(args, loop):
             private_key=private_key,
             child_key=child_key,
             tagged_files=tagged_files,
+            poll_timeout=poll_timeout,
             log=log,
             loop=loop,
         )
     except Exception as e:
-        message.write_event_log(log, message.error(str(e)), tb=traceback.format_exc())
+        message.write_event_log(log, message.error(str(e), tb=traceback.format_exc()))
     finally:
         return exit_code

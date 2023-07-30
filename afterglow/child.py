@@ -12,6 +12,7 @@ import asyncio, asyncssh, argparse
 
 from . import message
 from .files import parse_files, as_utf8, as_bytes
+from . import public_key
 
 
 def arguments(parser: argparse.ArgumentParser):
@@ -265,6 +266,8 @@ async def main(args, loop):
             parse_files(args.files),
             args.lock_path,
         )
+
+        public_key.check_permission(private_key)
 
         try:
             with open(lock_path, "r") as f:

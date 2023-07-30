@@ -50,7 +50,7 @@ positional arguments:
 ### Parent options
 
 ```bash
-usage: afterglow parent [-h] --private-key PRIVATE_KEY --child-key CHILD_KEY --ip IP --port PORT --files FILES [FILES ...] [--timeout TIMEOUT]
+usage: afterglow parent [-h] --private-key PRIVATE_KEY --child-key CHILD_KEY --ip IP --port PORT --files FILES [FILES ...] [--poll-timeout POLL_TIMEOUT] [--timeout TIMEOUT]
 
 options:
   -h, --help            show this help message and exit
@@ -62,6 +62,8 @@ options:
   --port PORT           The port to connect to
   --files FILES [FILES ...]
                         Colon seperated file:path mapping
+  --poll-timeout        The period of time which the parent will
+                        Continue to poll for the child
   --timeout TIMEOUT     The time window for which files are expeted to be copied across
 ```
 
