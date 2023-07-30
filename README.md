@@ -31,6 +31,7 @@ In the case of copy failure the child process keeps running waiting up to `timeo
 ## Roadmap
 
 - Add CI integration tests
+- Child to check parent key
 
 ## Usage
 
