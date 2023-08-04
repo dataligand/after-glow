@@ -1,0 +1,26 @@
+version: 2.1
+orbs:
+  python: circleci/python@2.1.1
+  codecov: codecov/codecov@3.2.5
+
+jobs:
+  test:
+    executor:
+      name: python/default
+      tag: "3.11"
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          name: Run tests
+          command: poetry run pytest --cov afterglow --cov-report=xml
+      - codecov/upload
+
+workflows:
+  test-workflow:
+    jobs:
+      - test:
+        filter:
+          branches:
+            only: main

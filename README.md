@@ -1,5 +1,8 @@
 # afterglow
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/dataligand/afterglow/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/dataligand/afterglow/tree/main)
+[![codecov](https://codecov.io/gh/dataligand/afterglow/branch/main/graph/badge.svg?token=959HH33QJV)](https://codecov.io/gh/dataligand/afterglow)
+
 ###### WARNING: Project is currently unstable, API's versions and tags can change at any moment
 
 </br>

@@ -16,6 +16,8 @@ structlog = "^23.1.0"
 [tool.poetry.group.dev.dependencies]
 toml = "^0.10.2"
 pytest = "^7.4.0"
+coverage = "^7.2.7"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core"]
