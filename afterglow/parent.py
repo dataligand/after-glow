@@ -46,12 +46,14 @@ def arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "--poll-timeout",
         default=900,
+        type=int,
         help="The time in seconds for which a connection to the child must be established",
     )
 
     parser.add_argument(
         "--timeout",
         default=300,
+        type=int,
         help="The time window for which files are expeted to be copied across",
     )
 
@@ -145,7 +147,7 @@ async def bootstrap_child(
         ) as e:
             message.write_event(
                 message_handler,
-                message.connection_failed(reason=e, sleep_interval=SLEEP_INTERVAL),
+                message.connection_failed(reason=str(e), sleep_interval=SLEEP_INTERVAL),
             )
             await asyncio.sleep(SLEEP_INTERVAL)
         else:

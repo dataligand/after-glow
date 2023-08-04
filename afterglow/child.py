@@ -292,5 +292,5 @@ async def main(args, loop):
 
     except Exception as e:
         message.write_event_log(log, message.error(str(e), tb=traceback.format_exc()))
-    else:
+    finally:
         return exit_code
