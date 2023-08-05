@@ -9,7 +9,7 @@
 
 ### A configuration tool for ignition based systems.
 
-Ignition-based systems have a 'one-shot' system configuration, which needs to be generally available to all instances. This means that if you are deploying a service that requires configured secrets, you might be tempted to place them in the Ignition config. However, doing so would involve storing secrets in plain text (potentially uploading them to a hosting service). Not only is this insecure, but it also doesn't truly solve the problem since these secrets are likely to rotate, rendering any static values in the Ignition configuration invalid. This service is intended to allow secret provisioning after boot, similar to how you would provision other servers. This aligns with the general principles of other configuration tools such as Ansible and Puppet
+Ignition-based systems have a 'oneshot' system configuration, which needs to be generally available to all instances. This means that if you are deploying a service that requires configured secrets, you might be tempted to place them in the Ignition config. However, doing so would involve storing secrets in plain text (potentially uploading them to a hosting service). Not only is this insecure, but it also doesn't truly solve the problem since these secrets are likely to rotate, rendering any static values in the Ignition configuration invalid. This service is intended to allow secret provisioning after boot, similar to how you would provision other servers. This aligns with the general principles of other configuration tools such as Ansible and Puppet
 
 ## Principle of operation
 
